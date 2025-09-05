@@ -1,359 +1,360 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Arcadian Phone</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg: radial-gradient(1200px 800px at 20% 10%, #3b2d63 0%, #231b3e 45%, #0f0f23 100%);
-    --pane: rgba(20,18,38,.6);
-    --gold: #d4af37;
-    --ink: #e8d5b7;
-    --accent: #9b7dff;
-    --veil: rgba(255,255,255,.08);
-    --line: rgba(255,255,255,.15);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0; background:var(--bg); color:var(--ink); font-family:"Cormorant Garamond", serif; display:grid; place-items:center; padding:24px}
-  .phone{
-    width:360px; max-width:94vw; height:720px; max-height:94vh;
-    border-radius:36px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-    border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,.5), inset 0 0 60px rgba(255,255,255,.04);
-    position:relative; overflow:hidden; backdrop-filter: blur(8px);
-  }
-  .bezel{position:absolute; inset:0; pointer-events:none}
-  .notch{position:absolute; top:0; left:50%; transform:translateX(-50%); width:180px; height:28px; background:rgba(0,0,0,.45); border-radius:0 0 18px 18px}
-  .status{position:absolute; top:10px; left:14px; right:14px; font-size:12px; display:flex; justify-content:space-between; opacity:.9}
-  .screen{position:absolute; inset:0; padding:56px 16px 16px 16px;}
-  .dock{position:absolute; left:0; right:0; bottom:0; padding:12px 16px 18px; display:flex; gap:12px; justify-content:center; background:linear-gradient(180deg, transparent, rgba(0,0,0,.25));}
-  .btn{appearance:none; border:none; background:var(--veil); color:var(--ink); border:1px solid var(--line); padding:10px 14px; border-radius:12px; cursor:pointer; font-family:Cinzel, serif; font-size:.95rem}
-  .btn.gold{background:linear-gradient(45deg, var(--gold), #b8941f); color:#1a1a2e; font-weight:600}
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
-  .icon{
-    display:grid; place-items:center; gap:6px; padding:14px 8px; border-radius:18px;
-    background:rgba(255,255,255,.06); border:1px solid var(--line); cursor:pointer; text-align:center;
-    transition:.2s transform, .2s box-shadow;
-  }
-  .icon:hover{transform:translateY(-3px); box-shadow:0 10px 20px rgba(0,0,0,.3)}
-  .icon .glyph{width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-size:22px; background:linear-gradient(135deg, rgba(155,125,255,.25), rgba(255,180,230,.18));}
-  .icon .label{font-size:.95rem; opacity:.95; font-family:Cinzel, serif}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arcadia Mini Keyboard</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #2d3561, #1a1a2e, #3d2947);
+      color: white;
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
 
-  .card{background:var(--pane); border:1px solid var(--line); border-radius:16px; padding:12px; backdrop-filter: blur(8px)}
-  .row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-  .bar{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
-  .title{font-family:Cinzel, serif; letter-spacing:.5px}
-  .hidden{display:none}
+    .keyboard-container {
+      text-align: center;
+      max-width: 1000px;
+      width: 100%;
+    }
 
-  /* Gallery */
-  #galleryView .thumbs{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; max-height:480px; overflow:auto}
-  #galleryView img{width:100%; height:100px; object-fit:cover; border-radius:10px; border:1px solid var(--line)}
+    .title {
+      font-size: 2.5em;
+      margin-bottom: 15px;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #c9a96e, #b19cd9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      letter-spacing: 2px;
+    }
 
-  /*/* Camera */
-  #camView video, #camView canvas { width:100%; height:260px; background:#000; border-radius:12px; border:1px solid var(--line); object-fit:cover }
-  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
-  .chip{padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.05); cursor:pointer; font-size:.9rem}
-  .chip.active{background:rgba(155,125,255,.2); border-color:var(--accent)}
+    .subtitle {
+      font-size: 1.1em;
+      margin-bottom: 40px;
+      color: #b0b0b0;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
 
-  /* Studio */
-  #studioView canvas { width:100%; height:300px; background:#000; border-radius:12px; border:1px solid var(--line); object-fit:contain }
-  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
-  .chip{padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.05); cursor:pointer; font-size:.9rem}
-  .chip.active{background:rgba(155,125,255,.2); border-color:var(--accent)}
-  #galleryPicker { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; max-height:160px; overflow:auto; margin-top:10px; }
-  #galleryPicker img { width:100%; height:60px; object-fit:cover; border-radius:8px; border:1px solid var(--line); cursor:pointer; }
+    .keyboard {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      margin: 30px auto;
+      max-width: 700px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
 
-  /* Notes */
-  #notesView .note{background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:12px; padding:8px 10px}
-  #notesList{display:grid; gap:8px; max-height:380px; overflow:auto}
-  textarea{width:100%; min-height:120px; border-radius:10px; padding:10px; border:1px solid var(--line); background:rgba(0,0,0,.35); color:var(--ink); resize:vertical}
+    .key {
+      aspect-ratio: 1;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.8em;
+      font-weight: bold;
+      color: white;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
 
-  /* Oracle */
-  #oracleView .paper{min-height:150px; border-radius:12px; border:1px dashed var(--line); padding:12px; font-style:italic}
+    .key::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: 12px;
+    }
 
-  /* Settings */
-  .swatch{width:22px; height:22px; border-radius:50%; border:1px solid var(--line); cursor:pointer}
-  .swatches{display:flex; gap:10px}
+    .key:hover::before { opacity: 0.3; }
+    .key.active {
+      transform: scale(0.95);
+      box-shadow: 0 0 25px currentColor;
+    }
+    .key.active::before { opacity: 0.6; }
 
-</style>
+    /* Color scheme */
+    .key:nth-child(1)  { background: linear-gradient(135deg, #dd91a7, #c986dc); }
+    .key:nth-child(2)  { background: linear-gradient(135deg, #98c37c, #adbe93); }
+    .key:nth-child(3)  { background: linear-gradient(135deg, #f7ca8a, #e8b366); }
+    .key:nth-child(4)  { background: linear-gradient(135deg, #8cbdbb, #7ba7a5); }
+    .key:nth-child(5)  { background: linear-gradient(135deg, #b19cd9, #9d87c7); }
+    .key:nth-child(6)  { background: linear-gradient(135deg, #c9a96e, #b8965c); }
+    .key:nth-child(7)  { background: linear-gradient(135deg, #a8a8a8, #909090); }
+    .key:nth-child(8)  { background: linear-gradient(135deg, #e8a87c, #d19660); }
+    .key:nth-child(9)  { background: linear-gradient(135deg, #c18fb5, #b07ca3); }
+    .key:nth-child(10) { background: linear-gradient(135deg, #7fb069, #6d9e57); }
+    .key:nth-child(11) { background: linear-gradient(135deg, #e6b878, #d4a566); }
+    .key:nth-child(12) { background: linear-gradient(135deg, #78aba9, #669997); }
+    .key:nth-child(13) { background: linear-gradient(135deg, #a38ac7, #9177b5); }
+    .key:nth-child(14) { background: linear-gradient(135deg, #b7975c, #a5864a); }
+    .key:nth-child(15) { background: linear-gradient(135deg, #969696, #7e7e7e); }
+    .key:nth-child(16) { background: linear-gradient(135deg, #d6966e, #c4845c); }
+
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .control-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    .control-btn.loop-active {
+      outline: 2px solid rgba(255,255,255,.55);
+    }
+
+    .volume-control {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    .volume-slider {
+      width: 150px;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .instructions {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #888;
+      line-height: 1.6;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .visual-indicator {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin: 20px auto;
+      background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    .visual-indicator.active {
+      transform: scale(1.2);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .keyboard {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 400px;
+        padding: 20px;
+      }
+      .title { font-size: 2em; }
+      .controls { gap: 10px; }
+      .control-btn { padding: 10px 16px; font-size: 12px; }
+    }
+  </style>
 </head>
 <body>
-  <div class="phone">
-    <div class="bezel">
-      <div class="notch"></div>
-      <div class="status"><span id="clock">--:--</span><span>ARCADIA ◉◉◉</span></div>
+  <div class="keyboard-container">
+    <h1 class="title">Arcadia Mini</h1>
+    <p class="subtitle">pastoral electronic textures for wandering minds</p>
+
+    <div class="visual-indicator" id="visualIndicator"></div>
+
+    <div class="keyboard" id="keyboard"></div>
+
+    <div class="controls">
+      <button class="control-btn" onclick="playArpeggio()">Garden Sequence</button>
+      <button class="control-btn" onclick="playChord()">Forest Chord</button>
+      <button class="control-btn" onclick="playRainLoop()">Rain Loop</button>
+      <button class="control-btn" id="loopBtn" onclick="toggleLoop()">Loop Off</button>
+      <button class="control-btn" onclick="clearAll()">Clear All</button>
     </div>
-    <div class="screen">
-      <!-- HOME -->
-      <div id="homeView">
-        <div class="bar"><h3 class="title">Arcadian Phone</h3></div>
-        <div class="grid">
-          <div class="icon" data-open="galleryView"><div class="glyph">🖼️</div><div class="label">Gallery</div></div>
-          <div class="icon" data-open="camView"><div class="glyph">📷</div><div class="label">Camera</div></div>
-          <div class="icon" data-open="studioView"><div class="glyph">🎨</div><div class="label">Studio</div></div>
-          <div class="icon" data-open="notesView"><div class="glyph">📝</div><div class="label">Notes</div></div>
-          <div class="icon" data-open="oracleView"><div class="glyph">🔮</div><div class="label">Oracle</div></div>
-          <div class="icon" data-open="settingsView"><div class="glyph">⚙️</div><div class="label">Settings</div></div>
-        </div>
-      </div>
 
-      <!-- GALLERY -->
-      <div id="galleryView" class="hidden">
-        <div class="bar">
-          <button class="btn" data-open="homeView">← Home</button>
-          <h3 class="title">Gallery</h3>
-          <label class="btn gold">
-            + Add
-            <input id="addImg" type="file" accept="image/*" hidden>
-          </label>
-        </div>
-        <div class="card">
-          <div class="thumbs" id="thumbs"></div>
-        </div>
-      </div>
-
-      <!-- CAMERA -->
-      <div id="camView" class="hidden">
-        <div class="bar">
-          <button class="btn" data-open="homeView">← Home</button>
-          <h3 class="title">Camera</h3>
-          <button class="btn gold" id="shutter">Capture</button>
-        </div>
-        <div class="card">
-          <video id="video" playsinline autoplay muted></video>
-          <canvas id="frame" class="hidden"></canvas>
-          <div class="filters" id="filters"></div>
-          <small>Tip: Camera requires HTTPS (or localhost). Your browser will prompt for permission when you open this app.</small>
-        </div>
-      </div>
-
-      <!-- STUDIO -->
-      <div id="studioView" class="hidden">
-        <div class="bar">
-          <button class="btn" data-open="homeView">← Home</button>
-          <h3 class="title">Studio</h3>
-          <div class="row">
-            <label class="btn gold">Load Image<input id="studioFile" type="file" accept="image/*" hidden></label>
-            <button class="btn" id="useLast">Use Last</button>
-            <button class="btn" id="pickGallery">Pick from Gallery</button>
-            <button class="btn gold" id="saveEdit" disabled>Save</button>
-          </div>
-        </div>
-        <div class="card">
-          <canvas id="studioCanvas"></canvas>
-          <div class="filters" id="studioFilters"></div>
-          <div id="galleryPicker" class="hidden"></div>
-          <small>Tip: Load an image, pick one from your Gallery, apply filters, then Save.</small>
-        </div>
-      </div>
-
-      <!-- NOTES -->
-      <div id="notesView" class="hidden">
-        <div class="bar">
-          <button class="btn" data-open="homeView">← Home</button>
-          <h3 class="title">Notes</h3>
-          <button class="btn gold" id="saveNote">Save</button>
-        </div>
-        <div class="card" style="margin-bottom:10px">
-          <textarea id="noteText" placeholder="Write a mystical note… (e.g., ‘the moon hums in amethyst tonight’)" ></textarea>
-          <div class="row" style="margin-top:8px">
-            <button class="btn" id="newNote">New</button>
-            <button class="btn" id="seedNote">Inspire ✨</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="bar"><strong>Archive</strong><button class="btn" id="clearNotes">Clear</button></div>
-          <div id="notesList"></div>
-        </div>
-      </div>
-
-      <!-- ORACLE -->
-      <div id="oracleView" class="hidden">
-        <div class="bar">
-          <button class="btn" data-open="homeView">← Home</button>
-          <h3 class="title">Oracle</h3>
-          <button class="btn gold" id="cast">Cast</button>
-        </div>
-        <div class="card">
-          <div class="paper" id="prophecy">Ask, and Arcadia will answer…</div>
-          <div class="row" style="margin-top:10px">
-            <input id="question" class="btn" style="flex:1" placeholder="Type a question…">
-            <button class="btn" id="saveProphecy">Save to Notes</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div id="settingsView" class="hidden">
-        <div class="bar">
-          <button class="btn" data-open="homeView">← Home</button>
-          <h3 class="title">Settings</h3>
-          <span></span>
-        </div>
-        <div class="card">
-          <div class="row" style="justify-content:space-between">
-            <div>
-              <div class="title" style="font-size:1.1rem">Accent</div>
-              <div class="swatches">
-                <div class="swatch" style="background:#9b7dff" data-accent="#9b7dff"></div>
-                <div class="swatch" style="background:#ff66c4" data-accent="#ff66c4"></div>
-                <div class="swatch" style="background:#7bd389" data-accent="#7bd389"></div>
-                <div class="swatch" style="background:#ffd166" data-accent="#ffd166"></div>
-              </div>
-            </div>
-            <div>
-              <div class="title" style="font-size:1.1rem">Theme</div>
-              <div class="row">
-                <button class="btn" id="themeArcadia">Arcadia</button>
-                <button class="btn" id="themeDawn">Dawn</button>
-                <button class="btn" id="themeNight">Night</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div class="volume-control">
+      <span>Volume:</span>
+      <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="25">
     </div>
-    <div class="dock">
-      <button class="btn" data-open="homeView">◁ Home</button>
-      <button class="btn" data-open="galleryView">🖼️</button>
-      <button class="btn" data-open="camView">📷</button>
-      <button class="btn" data-open="studioView">🎨</button>
-      <button class="btn" data-open="notesView">📝</button>
-      <button class="btn" data-open="oracleView">🔮</button>
+
+    <div class="instructions">
+      Click keys to layer ambient sounds • Each key holds pastoral frequencies and textures • Use sequences for composed moments
     </div>
   </div>
 
-<script>
-// ---------- Router ----------
-const views = ["homeView","galleryView","camView","studioView","notesView","oracleView","settingsView"];
-function openView(id){
-  views.forEach(v=>document.getElementById(v).classList.toggle('hidden', v!==id));
-  if(id==='camView') startCamera(); else stopCameraIfUnused();
-  if(id==='galleryView') renderThumbs();
-  if(id==='notesView') renderNotes();
-}
-document.querySelectorAll('[data-open]').forEach(el=> el.addEventListener('click', ()=> openView(el.dataset.open)) );
-openView('homeView');
+  <script>
+    class ArcadiaKeyboard {
+      constructor() {
+        this.audioContext = null;
+        this.oscillators = {};
+        this.gainNodes = {};
+        this.masterGain = null;
+        this.isPlaying = {};
+        this.isLooping = false;
+        this.loopTimeout = null;
+        this.currentSequence = null;
+        this.frequencies = [
+          174.61,196.00,220.00,246.94,261.63,293.66,329.63,349.23,
+          392.00,440.00,493.88,523.25,587.33,659.25,698.46,783.99
+        ];
+        this.init();
+      }
 
-// ---------- Clock ----------
-setInterval(()=>{
-  const d = new Date();
-  const t = d.toLocaleTimeString([],{hour:'2-digit', minute:'2-digit'});
-  document.getElementById('clock').textContent = t;
-}, 1000);
+      async init() {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.audioContext.createGain();
+        this.masterGain.connect(this.audioContext.destination);
+        this.masterGain.gain.value = 0.25;
+        this.createKeyboard();
+        this.setupEventListeners();
+      }
 
-// ---------- Gallery ----------
-const thumbsEl = document.getElementById('thumbs');
-function renderThumbs(){
-  const items = JSON.parse(localStorage.getItem('arcadia.gallery')||'[]');
-  thumbsEl.innerHTML = '';
-  items.forEach((src,i)=>{
-    const img = new Image(); img.src = src; img.alt = `capture-${i}`; img.loading='lazy';
-    img.addEventListener('click', ()=> openLightbox(src));
-    thumbsEl.appendChild(img);
-  });
-}
-function saveToGallery(dataUrl){
-  const items = JSON.parse(localStorage.getItem('arcadia.gallery')||'[]');
-  items.unshift(dataUrl); // newest first
-  localStorage.setItem('arcadia.gallery', JSON.stringify(items.slice(0,60)));
-  renderThumbs();
-}
-function openLightbox(src){
-  const w = window.open('','_blank');
-  w.document.write(`<img src="${src}" style="width:100%;height:100%;object-fit:contain;background:#000">`);
-}
+      createKeyboard() {
+        const keyboard = document.getElementById('keyboard');
+        const labels = [
+          'mist','dawn','leaf','dew','wind','rain','sky','moon',
+          'star','snow','sage','moss','fern','pond','bird','echo'
+        ];
+        for (let i=0;i<16;i++){
+          const key = document.createElement('button');
+          key.className = 'key';
+          key.dataset.index = i;
+          key.textContent = labels[i];
+          key.addEventListener('mousedown', () => this.startNote(i));
+          key.addEventListener('mouseup', () => this.stopNote(i));
+          key.addEventListener('mouseleave', () => this.stopNote(i));
+          key.addEventListener('touchstart', (e)=>{ e.preventDefault(); this.startNote(i); }, {passive:false});
+          key.addEventListener('touchend', (e)=>{ e.preventDefault(); this.stopNote(i); }, {passive:false});
+          keyboard.appendChild(key);
+        }
+      }
 
-document.getElementById('addImg').addEventListener('change', e=>{
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => { saveToGallery(ev.target.result); };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-});
+      async startNote(index) {
+        if (!this.audioContext) return;
+        if (this.audioContext.state === 'suspended') await this.audioContext.resume();
+        if (this.isPlaying[index]) return;
+        const frequency = this.frequencies[index];
+        const osc = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type='lowpass'; filter.frequency.value=1500+Math.random()*1000; filter.Q.value=0.5;
+        osc.type='sine'; osc.frequency.value=frequency; osc.detune.value=(Math.random()-0.5)*15;
+        gain.gain.value=0; gain.gain.setTargetAtTime(0.12,this.audioContext.currentTime,0.4);
+        osc.connect(filter); filter.connect(gain); gain.connect(this.masterGain);
+        osc.start();
+        this.oscillators[index]=osc; this.gainNodes[index]=gain; this.isPlaying[index]=true;
+        document.querySelector(`[data-index="${index}"]`).classList.add('active');
+        this.updateIndicator();
+      }
 
-// ---------- Camera (prompts on activation)
-let stream = null;               // MediaStream for camera
-let currentFilter = 'none';
-const filterDefs = [
-  {key:'none',     label:'None',            css:'none'},
-  {key:'twilight', label:'Twilight Veil',   css:'contrast(1.05) saturate(1.1) hue-rotate(310deg)'},
-  {key:'moonstone',label:'Moonstone Drift', css:'contrast(1.1) saturate(1.2) hue-rotate(210deg) brightness(1.05)'},
-  {key:'obsidian', label:'Obsidian Guard',  css:'grayscale(.3) contrast(1.25) brightness(.9)'},
-  {key:'fuchsia',  label:'Fuchsia Bloom',   css:'saturate(1.4) hue-rotate(330deg) brightness(1.05)'},
-  {key:'meadow',   label:'Oracle Meadow',   css:'saturate(1.25) hue-rotate(80deg)'}
-];
-const video = document.getElementById('video');
-const canvas = document.getElementById('frame');
-const ctx = canvas.getContext('2d');
-const filtersWrap = document.getElementById('filters');
+      stopNote(index){
+        if (!this.oscillators[index] || !this.isPlaying[index]) return;
+        const osc=this.oscillators[index]; const gain=this.gainNodes[index];
+        gain.gain.setTargetAtTime(0,this.audioContext.currentTime,0.5);
+        setTimeout(()=>{
+          try{osc.stop();osc.disconnect();gain.disconnect();}catch(_){}
+          delete this.oscillators[index]; delete this.gainNodes[index]; this.isPlaying[index]=false;
+          document.querySelector(`[data-index="${index}"]`).classList.remove('active');
+          this.updateIndicator();
+        },500);
+      }
 
-function buildFilterChips(){
-  filtersWrap.innerHTML = '';
-  filterDefs.forEach(f=>{
-    const chip = document.createElement('button'); chip.className='chip'; chip.textContent=f.label; chip.dataset.key=f.key;
-    if(f.key===currentFilter) chip.classList.add('active');
-    chip.addEventListener('click', ()=>{
-      currentFilter = f.key; updateVideoFilter();
-      document.querySelectorAll('#filters .chip').forEach(c=>c.classList.toggle('active', c.dataset.key===currentFilter));
-    });
-    filtersWrap.appendChild(chip);
-  });
-}
+      updateIndicator(){
+        const active=Object.values(this.isPlaying).some(Boolean);
+        document.getElementById('visualIndicator').classList.toggle('active',active);
+      }
 
-async function startCamera(){
-  buildFilterChips();
-  if(stream) return; // already active
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}, audio:false});
-    video.srcObject = stream;
-    await video.play();
-    updateVideoFilter();
-  }catch(err){
-    console.warn('Camera error', err);
-    alert('Camera requires HTTPS (or localhost) and permission.');
-  }
-}
-function stopCameraIfUnused(){
-  const camHidden = document.getElementById('camView').classList.contains('hidden');
-  if(!camHidden) return;
-  if(stream && typeof stream.getTracks === 'function'){
-    stream.getTracks().forEach(t=>t.stop());
-  }
-  stream = null;
-  if(video) video.srcObject = null;
-}
-function updateVideoFilter(){
-  const def = filterDefs.find(f=>f.key===currentFilter) || filterDefs[0];
-  if(video) video.style.filter = def.css;
-}
+      setupEventListeners(){
+        document.getElementById('volumeSlider').addEventListener('input',(e)=>{
+          this.masterGain.gain.value=(e.target.value/100)*0.4;
+        });
+      }
+    }
 
-document.getElementById('shutter').addEventListener('click', ()=>{
-  if(!video.srcObject){ startCamera(); return; }
-  canvas.width = video.videoWidth || video.clientWidth;
-  canvas.height = video.videoHeight || video.clientHeight;
-  const def = filterDefs.find(f=>f.key===currentFilter) || filterDefs[0];
-  ctx.filter = def.css;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const grd = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.1, canvas.width/2, canvas.height/2, canvas.width*0.8);
-  grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,'rgba(0,0,0,0.25)');
-  ctx.fillStyle = grd; ctx.fillRect(0,0,canvas.width,canvas.height);
-  const data = canvas.toDataURL('image/jpeg', 0.9);
-  saveToGallery(data);
-});
+    let keyboard;
+    function scheduleLoop(fn,delay){ if(!keyboard.isLooping)return; if(keyboard.loopTimeout)clearTimeout(keyboard.loopTimeout); keyboard.loopTimeout=setTimeout(fn,delay); }
+    function cancelLoop(){ if(keyboard.loopTimeout)clearTimeout(keyboard.loopTimeout); }
 
-// ---------- Studio ----------
-const studioCanvas = document.getElementById('studioCanvas');
-const sctx = studioCanvas.getContext('2d');
-const studioFilters = document.getElementById('studioFilters');
-let studioImg = null;
-let studioFilter = 'none';
-const studioDefs = [
-  {key:'none',     label:'None',            css:'none'},
-  {key:'twilight', label:'Twilight Veil',   css:'contrast(1.05) saturate(1.1) hue-rotate(310deg)'},
-  {key:'moonstone',label:'Moonstone Drift', css:'contrast(1.1) saturate(1.2) hue-rotate(210deg) brightness(1.05)'},
-  {key:'obsidian', label:'Obsidian Guard',  css:'grayscale(.3) contrast(1.25) brightness(.9)'},
-  {key:'fuchsia',  label:'Fuchsia Bloom',   css:'saturate(1.4) hue-rotate(330deg) brightness(1
+    async function playArpeggio(){
+      if (!keyboard?.audioContext) return;
+      if (keyboard.audioContext.state==='suspended') await keyboard.audioContext.resume();
+      keyboard.currentSequence='arpeggio';
+      const pattern=[0,2,4,7,9,11,14,11,9,7,4,2], step=400;
+      pattern.forEach((n,i)=>{ setTimeout(()=>{keyboard.startNote(n); setTimeout(()=>keyboard.stopNote(n),800);}, i*step);});
+      scheduleLoop(playArpeggio, pattern.length*step+200);
+    }
+
+    async function playChord(){
+      if (!keyboard?.audioContext) return;
+      if (keyboard.audioContext.state==='suspended') await keyboard.audioContext.resume();
+      keyboard.currentSequence='chord';
+      const chord=[0,4,7,11]; chord.forEach(n=>keyboard.startNote(n)); setTimeout(()=>chord.forEach(n=>keyboard.stopNote(n)),3000);
+      scheduleLoop(playChord,3200);
+    }
+
+    async function playRainLoop(){
+      if (!keyboard?.audioContext) return;
+      if (keyboard.audioContext.state==='suspended') await keyboard.audioContext.resume();
+      keyboard.currentSequence='rain';
+      const src=keyboard.audioContext.createBufferSource(), filt=keyboard.audioContext.createBiquadFilter(), gain=keyboard.audioContext.createGain();
+      const len=keyboard.audioContext.sampleRate*4, buf=keyboard.audioContext.createBuffer(1,len,keyboard.audioContext.sampleRate), ch=buf.getChannelData(0);
+      for(let i=0;i<len;i++) ch[i]=Math.random()*2-1;
+      src.buffer=buf; src.loop=true; filt.type='bandpass'; filt.frequency.value=1200; filt.Q.value=0.5;
+      gain.gain.value=0; gain.gain.setTargetAtTime(0.04,keyboard.audioContext.currentTime,1);
+      src.connect(filt); filt.connect(gain); gain.connect(keyboard.masterGain);
+      src.start(); setTimeout(()=>{gain.gain.setTargetAtTime(0,keyboard.audioContext.currentTime,1); setTimeout(()=>{try{src.stop();src.disconnect();filt.disconnect();gain.disconnect();}catch(_){ }},1000);},10000);
+      scheduleLoop(playRainLoop,11000);
+    }
+
+    function toggleLoop(){
+      keyboard.isLooping=!keyboard.isLooping;
+      const btn=document.getElementById('loopBtn');
+      if(keyboard.isLooping){
+        btn.textContent='Loop On'; btn.classList.add('loop-active');
+        if(keyboard.currentSequence==='arpeggio') playArpeggio();
+        else if(keyboard.currentSequence==='chord') playChord();
+        else if(keyboard.currentSequence==='rain') playRainLoop();
+      }else{
+        btn.textContent='Loop Off'; btn.classList.remove('loop-active'); cancelLoop(); keyboard.currentSequence=null;
+      }
+    }
+
+    function clearAll(){
+      for(let i=0;i<16;i++) keyboard.stopNote(i);
+      keyboard.isLooping=false; cancelLoop(); keyboard.currentSequence=null;
+      const btn=document.getElementById('loopBtn'); btn.textContent='Loop Off'; btn.classList.remove('loop-active');
+    }
+
+    window.addEventListener('load',()=>{ keyboard=new ArcadiaKeyboard(); });
+  </script>
+</body>
+</html>
