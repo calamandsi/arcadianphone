@@ -51,11 +51,19 @@
   #galleryView .thumbs{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; max-height:480px; overflow:auto}
   #galleryView img{width:100%; height:100px; object-fit:cover; border-radius:10px; border:1px solid var(--line)}
 
-  /* Camera */
+  /*/* Camera */
   #camView video, #camView canvas { width:100%; height:260px; background:#000; border-radius:12px; border:1px solid var(--line); object-fit:cover }
   .filters{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
   .chip{padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.05); cursor:pointer; font-size:.9rem}
   .chip.active{background:rgba(155,125,255,.2); border-color:var(--accent)}
+
+  /* Studio */
+  #studioView canvas { width:100%; height:300px; background:#000; border-radius:12px; border:1px solid var(--line); object-fit:contain }
+  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+  .chip{padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.05); cursor:pointer; font-size:.9rem}
+  .chip.active{background:rgba(155,125,255,.2); border-color:var(--accent)}
+  #galleryPicker { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; max-height:160px; overflow:auto; margin-top:10px; }
+  #galleryPicker img { width:100%; height:60px; object-fit:cover; border-radius:8px; border:1px solid var(--line); cursor:pointer; }
 
   /* Notes */
   #notesView .note{background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:12px; padding:8px 10px}
@@ -84,6 +92,7 @@
         <div class="grid">
           <div class="icon" data-open="galleryView"><div class="glyph">🖼️</div><div class="label">Gallery</div></div>
           <div class="icon" data-open="camView"><div class="glyph">📷</div><div class="label">Camera</div></div>
+          <div class="icon" data-open="studioView"><div class="glyph">🎨</div><div class="label">Studio</div></div>
           <div class="icon" data-open="notesView"><div class="glyph">📝</div><div class="label">Notes</div></div>
           <div class="icon" data-open="oracleView"><div class="glyph">🔮</div><div class="label">Oracle</div></div>
           <div class="icon" data-open="settingsView"><div class="glyph">⚙️</div><div class="label">Settings</div></div>
@@ -116,7 +125,27 @@
           <video id="video" playsinline autoplay muted></video>
           <canvas id="frame" class="hidden"></canvas>
           <div class="filters" id="filters"></div>
-          <small>Tip: camera needs HTTPS (or localhost). Captures save into Gallery.</small>
+          <small>Tip: Camera requires HTTPS (or localhost). Your browser will prompt for permission when you open this app.</small>
+        </div>
+      </div>
+
+      <!-- STUDIO -->
+      <div id="studioView" class="hidden">
+        <div class="bar">
+          <button class="btn" data-open="homeView">← Home</button>
+          <h3 class="title">Studio</h3>
+          <div class="row">
+            <label class="btn gold">Load Image<input id="studioFile" type="file" accept="image/*" hidden></label>
+            <button class="btn" id="useLast">Use Last</button>
+            <button class="btn" id="pickGallery">Pick from Gallery</button>
+            <button class="btn gold" id="saveEdit" disabled>Save</button>
+          </div>
+        </div>
+        <div class="card">
+          <canvas id="studioCanvas"></canvas>
+          <div class="filters" id="studioFilters"></div>
+          <div id="galleryPicker" class="hidden"></div>
+          <small>Tip: Load an image, pick one from your Gallery, apply filters, then Save.</small>
         </div>
       </div>
 
@@ -191,6 +220,7 @@
       <button class="btn" data-open="homeView">◁ Home</button>
       <button class="btn" data-open="galleryView">🖼️</button>
       <button class="btn" data-open="camView">📷</button>
+      <button class="btn" data-open="studioView">🎨</button>
       <button class="btn" data-open="notesView">📝</button>
       <button class="btn" data-open="oracleView">🔮</button>
     </div>
@@ -198,11 +228,10 @@
 
 <script>
 // ---------- Router ----------
-const views = ["homeView","galleryView","camView","notesView","oracleView","settingsView"];
+const views = ["homeView","galleryView","camView","studioView","notesView","oracleView","settingsView"];
 function openView(id){
   views.forEach(v=>document.getElementById(v).classList.toggle('hidden', v!==id));
-  if(id==='camView') startCamera();
-  if(id!=='camView') stopCameraIfUnused();
+  if(id==='camView') startCamera(); else stopCameraIfUnused();
   if(id==='galleryView') renderThumbs();
   if(id==='notesView') renderNotes();
 }
@@ -246,17 +275,17 @@ document.getElementById('addImg').addEventListener('change', e=>{
   e.target.value = '';
 });
 
-// ---------- Camera with filters ----------
-let stream = null; let currentFilter = 'none';
+// ---------- Camera (prompts on activation)
+let stream = null;               // MediaStream for camera
+let currentFilter = 'none';
 const filterDefs = [
-  {key:'none', label:'None', css:'none'},
-  {key:'twilight', label:'Twilight Veil', css:'contrast(1.05) saturate(1.1) hue-rotate(310deg)'},
-  {key:'moonstone', label:'Moonstone Drift', css:'contrast(1.1) saturate(1.2) hue-rotate(210deg) brightness(1.05)'},
-  {key:'obsidian', label:'Obsidian Guard', css:'grayscale(.3) contrast(1.25) brightness(.9)'},
-  {key:'fuchsia', label:'Fuchsia Bloom', css:'saturate(1.4) hue-rotate(330deg) brightness(1.05)'},
-  {key:'meadow', label:'Oracle Meadow', css:'saturate(1.25) hue-rotate(80deg)'}
+  {key:'none',     label:'None',            css:'none'},
+  {key:'twilight', label:'Twilight Veil',   css:'contrast(1.05) saturate(1.1) hue-rotate(310deg)'},
+  {key:'moonstone',label:'Moonstone Drift', css:'contrast(1.1) saturate(1.2) hue-rotate(210deg) brightness(1.05)'},
+  {key:'obsidian', label:'Obsidian Guard',  css:'grayscale(.3) contrast(1.25) brightness(.9)'},
+  {key:'fuchsia',  label:'Fuchsia Bloom',   css:'saturate(1.4) hue-rotate(330deg) brightness(1.05)'},
+  {key:'meadow',   label:'Oracle Meadow',   css:'saturate(1.25) hue-rotate(80deg)'}
 ];
-
 const video = document.getElementById('video');
 const canvas = document.getElementById('frame');
 const ctx = canvas.getContext('2d');
@@ -269,7 +298,7 @@ function buildFilterChips(){
     if(f.key===currentFilter) chip.classList.add('active');
     chip.addEventListener('click', ()=>{
       currentFilter = f.key; updateVideoFilter();
-      document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active', c.dataset.key===currentFilter));
+      document.querySelectorAll('#filters .chip').forEach(c=>c.classList.toggle('active', c.dataset.key===currentFilter));
     });
     filtersWrap.appendChild(chip);
   });
@@ -277,10 +306,11 @@ function buildFilterChips(){
 
 async function startCamera(){
   buildFilterChips();
-  if(stream) return;
+  if(stream) return; // already active
   try{
     stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}, audio:false});
-    video.srcObject = stream; await video.play();
+    video.srcObject = stream;
+    await video.play();
     updateVideoFilter();
   }catch(err){
     console.warn('Camera error', err);
@@ -288,108 +318,42 @@ async function startCamera(){
   }
 }
 function stopCameraIfUnused(){
-  if(!document.getElementById('camView').classList.contains('hidden')) return;
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null; }
+  const camHidden = document.getElementById('camView').classList.contains('hidden');
+  if(!camHidden) return;
+  if(stream && typeof stream.getTracks === 'function'){
+    stream.getTracks().forEach(t=>t.stop());
+  }
+  stream = null;
+  if(video) video.srcObject = null;
 }
 function updateVideoFilter(){
   const def = filterDefs.find(f=>f.key===currentFilter) || filterDefs[0];
-  video.style.filter = def.css;
+  if(video) video.style.filter = def.css;
 }
 
-// Capture frame with filter baked in
- document.getElementById('shutter').addEventListener('click', ()=>{
+document.getElementById('shutter').addEventListener('click', ()=>{
   if(!video.srcObject){ startCamera(); return; }
   canvas.width = video.videoWidth || video.clientWidth;
   canvas.height = video.videoHeight || video.clientHeight;
-  // apply same filter when drawing
   const def = filterDefs.find(f=>f.key===currentFilter) || filterDefs[0];
   ctx.filter = def.css;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  // overlay subtle vignette
   const grd = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.width*0.1, canvas.width/2, canvas.height/2, canvas.width*0.8);
   grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,'rgba(0,0,0,0.25)');
   ctx.fillStyle = grd; ctx.fillRect(0,0,canvas.width,canvas.height);
-
   const data = canvas.toDataURL('image/jpeg', 0.9);
   saveToGallery(data);
 });
 
-// ---------- Notes ----------
-const noteText = document.getElementById('noteText');
-const notesList = document.getElementById('notesList');
-function renderNotes(){
-  const items = JSON.parse(localStorage.getItem('arcadia.notes')||'[]');
-  notesList.innerHTML='';
-  items.forEach((n,i)=>{
-    const div = document.createElement('div'); div.className='note';
-    div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong>${n.title}</strong><button class='btn' data-del='${i}'>Delete</button></div><div>${n.body.replace(/\n/g,'<br>')}</div>`;
-    notesList.appendChild(div);
-  });
-  // deletion
-  notesList.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', (e)=>{
-    const idx = Number(e.currentTarget.dataset.del); const items = JSON.parse(localStorage.getItem('arcadia.notes')||'[]');
-    items.splice(idx,1); localStorage.setItem('arcadia.notes', JSON.stringify(items)); renderNotes();
-  }));
-}
-function saveNote(){
-  const body = noteText.value.trim(); if(!body) return;
-  const items = JSON.parse(localStorage.getItem('arcadia.notes')||'[]');
-  const title = 'Note • '+ new Date().toLocaleString();
-  items.unshift({title, body}); localStorage.setItem('arcadia.notes', JSON.stringify(items.slice(0,200)));
-  noteText.value=''; renderNotes();
-}
-function seedNote(){
-  const seeds = [
-    'the cards say a change is coming near',
-    'as a nestling on a bough, the fool is the martyr of the now',
-    'twilight hums in amethyst and moss',
-    'keys sleep under stones; gates open to song',
-    'the storm is always about to come, and never does'
-  ];
-  noteText.value = (noteText.value? noteText.value+'\n':'') + '• '+ seeds[Math.floor(Math.random()*seeds.length)];
-}
-
-document.getElementById('saveNote').addEventListener('click', saveNote);
-document.getElementById('newNote').addEventListener('click', ()=> noteText.value='');
-document.getElementById('seedNote').addEventListener('click', seedNote);
-document.getElementById('clearNotes').addEventListener('click', ()=>{ localStorage.removeItem('arcadia.notes'); renderNotes(); });
-
-// ---------- Oracle ----------
-const prophecy = document.getElementById('prophecy');
-const question = document.getElementById('question');
-function castOracle(){
-  const openers = ['The Moon whispers','The Tower shudders','The Star extends a hand','A gate unlatches','The river remembers'];
-  const middles = ['in violet parables','through braided time','beneath the cedar veil','with eyes of quartz','as comets braid the field'];
-  const enders = ['— step lightly.','— and keep a key.','— wait by the willow.','— speak only in spirals.','— the hour is near.'];
-  const q = question.value.trim();
-  const line = `${openers[Math.floor(Math.random()*openers.length)]} ${middles[Math.floor(Math.random()*middles.length)]} ${enders[Math.floor(Math.random()*enders.length)]}`;
-  prophecy.textContent = (q? 'Q: '+q+'\n':'') + line;
-}
-
-document.getElementById('cast').addEventListener('click', castOracle);
-document.getElementById('saveProphecy').addEventListener('click', ()=>{
-  if(!prophecy.textContent.trim()) return;
-  const items = JSON.parse(localStorage.getItem('arcadia.notes')||'[]');
-  items.unshift({title:'Oracle • '+new Date().toLocaleString(), body: prophecy.textContent});
-  localStorage.setItem('arcadia.notes', JSON.stringify(items.slice(0,200)));
-  alert('Saved to Notes');
-});
-
-// ---------- Settings ----------
-document.querySelectorAll('.swatch').forEach(s=> s.addEventListener('click', ()=>{
-  const c = s.dataset.accent; document.documentElement.style.setProperty('--accent', c);
-}));
-
-document.getElementById('themeArcadia').addEventListener('click', ()=>{
-  document.documentElement.style.setProperty('--bg', 'radial-gradient(1200px 800px at 20% 10%, #3b2d63 0%, #231b3e 45%, #0f0f23 100%)');
-});
-document.getElementById('themeDawn').addEventListener('click', ()=>{
-  document.documentElement.style.setProperty('--bg', 'linear-gradient(135deg, #402a6b 0%, #7c4f7d 45%, #f2b5c6 100%)');
-});
-document.getElementById('themeNight').addEventListener('click', ()=>{
-  document.documentElement.style.setProperty('--bg', 'radial-gradient(1000px 700px at 50% -10%, #0b0a17 0%, #111127 40%, #090913 100%)');
-});
-
-</script>
-</body>
-</html>
+// ---------- Studio ----------
+const studioCanvas = document.getElementById('studioCanvas');
+const sctx = studioCanvas.getContext('2d');
+const studioFilters = document.getElementById('studioFilters');
+let studioImg = null;
+let studioFilter = 'none';
+const studioDefs = [
+  {key:'none',     label:'None',            css:'none'},
+  {key:'twilight', label:'Twilight Veil',   css:'contrast(1.05) saturate(1.1) hue-rotate(310deg)'},
+  {key:'moonstone',label:'Moonstone Drift', css:'contrast(1.1) saturate(1.2) hue-rotate(210deg) brightness(1.05)'},
+  {key:'obsidian', label:'Obsidian Guard',  css:'grayscale(.3) contrast(1.25) brightness(.9)'},
+  {key:'fuchsia',  label:'Fuchsia Bloom',   css:'saturate(1.4) hue-rotate(330deg) brightness(1
